@@ -72,6 +72,9 @@ sources and license notices. `release.lock.json` pins the archive and every file
 by SHA-256. Keep `dist/` and the lock together in the same commit; the ZIP itself
 does not need to be committed. Invalid imports keep the previous distribution.
 
+Keep `.gitattributes` with the repository: `dist/** -text` prevents Windows Git
+from converting imported line endings and invalidating those exact byte hashes.
+
 Desktop extensions are injected into the local app at runtime. They do not edit
 the authenticated distribution. The browser version exposes an audio adapter only
 to the local, top-level Tauri window.
