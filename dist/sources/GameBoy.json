@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "component": "gameboy_apu",
+  "sdk": {
+    "schemaVersion": 1,
+    "name": "tetorica-soundchip-native",
+    "version": "0.1.7",
+    "sourceCommit": "95cf71a857b15d0ea932ebf97d5fde80b5e80a95",
+    "archiveName": "tetorica-soundchip-native-0.1.7-sources.zip",
+    "archiveSha256": "5f7cdf35bc85a7453eef42576259f615411d4fdcdd47b8778242eb2a2d7f2b9c",
+    "manifestSha256": "b5e4c75230c32c66aa2ba4248830af7e7587a5977529973c346063afd2d2f365",
+    "fileCount": 476,
+    "unpublished": true
+  },
+  "build": {
+    "id": "gameboy_apu",
+    "format": "emscripten-es-module",
+    "sourceFingerprint": "cd7ff088e947d20acb89728dc970a1e1a88bff197dc61be141165790d021a7aa",
+    "sourceFiles": [
+      {
+        "path": "scripts/build-wasm.sh",
+        "sha256": "caf6bd1688d21b48cf5c633aac9aa9398ad727b8b5445fca7aa37718d7dca33f",
+        "size": 1696
+      },
+      {
+        "path": "scripts/build_gameboy_apu_wasm.sh",
+        "sha256": "a9591f2b4c346d2b9a9ecbc87b1e18802ac90ac474830e25e71f4b6d738baa2f",
+        "size": 778
+      },
+      {
+        "path": "scripts/record_wasm_build.mjs",
+        "sha256": "8728a4b3f31e78db4410ab38d36bff72bfd5cd7bbd9c6f6fdb7dad1d53fe0dbf",
+        "size": 2006
+      },
+      {
+        "path": "vendor/mame-gameboy/gameboy_apu.cpp",
+        "sha256": "ba5fa988a82d175500dac392f518d7d86258c3743910b87f24218ef5602c91de",
+        "size": 18222
+      },
+      {
+        "path": "vendor/mame-gameboy/gameboy_apu.h",
+        "sha256": "3f464c0874e12995ddc3403587ab4bed0538c57e49d3179c7a0c50e6a1d96a12",
+        "size": 3661
+      },
+      {
+        "path": "vendor/mame-gameboy/upstream/gb.cpp",
+        "sha256": "c3ce71628faf03013234275e1ed5023b4b4393a843cd81b6b60f6dc0c625dee3",
+        "size": 34748
+      },
+      {
+        "path": "vendor/mame-gameboy/upstream/gb.h",
+        "sha256": "79a124a25f43ba325c19940a351f44267654bb8652c651e53de069ce07389599",
+        "size": 5569
+      },
+      {
+        "path": "wasm/gameboy_apu_wasm.cpp",
+        "sha256": "03ad182b928394ca58340a50e36570dc425ff080338bd196b903572638bc2db7",
+        "size": 2076
+      }
+    ],
+    "outputs": [
+      {
+        "path": "gameboy_apu_wasm.js",
+        "sha256": "bd5d7500c4a3c99763ac7cd27263e73c060f04df3b85167a0fed19f9dad5c4e5",
+        "size": 11497
+      },
+      {
+        "path": "gameboy_apu_wasm.wasm",
+        "sha256": "ae2bccd3ed8f0c776fc8be198fa9fddebeb18db5654b9160eeef239c9a3faabd",
+        "size": 13782
+      }
+    ],
+    "compiler": {
+      "command": "em++",
+      "version": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.6-git\nCopyright (C) 2026 the Emscripten authors (see AUTHORS.txt)\nThis is free and open source software under the MIT license.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    },
+    "verification": "compiled from the included source snapshot; runtime smoke is reported separately"
+  },
+  "inputs": [
+    {
+      "path": "sources/gameboy-sdk/LICENSE",
+      "bytes": 1517,
+      "sha256": "d49c2f05a09d2d648c05a5af92240a5dc4059830bc29afbb8919c6d1ba76bf91"
+    },
+    {
+      "path": "sources/gameboy-sdk/scripts/build-wasm.sh",
+      "bytes": 1696,
+      "sha256": "caf6bd1688d21b48cf5c633aac9aa9398ad727b8b5445fca7aa37718d7dca33f"
+    },
+    {
+      "path": "sources/gameboy-sdk/scripts/build_gameboy_apu_wasm.sh",
+      "bytes": 778,
+      "sha256": "a9591f2b4c346d2b9a9ecbc87b1e18802ac90ac474830e25e71f4b6d738baa2f"
+    },
+    {
+      "path": "sources/gameboy-sdk/scripts/record_wasm_build.mjs",
+      "bytes": 2006,
+      "sha256": "8728a4b3f31e78db4410ab38d36bff72bfd5cd7bbd9c6f6fdb7dad1d53fe0dbf"
+    },
+    {
+      "path": "sources/gameboy-sdk/sdk.json",
+      "bytes": 285,
+      "sha256": "236605758aca8e6dd7753094e64666c29b2bb112d2b5370588b54e69518112a7"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/LICENSE",
+      "bytes": 1529,
+      "sha256": "acb20353889f489aba276d31cbd8ffce15c6bd353f873dc2255e67053446f3dc"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/README.md",
+      "bytes": 5351,
+      "sha256": "831990cae084021f75b9432aa6a9c50f2b686e79541482e86997a9cf67e50f61"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/gameboy_apu.cpp",
+      "bytes": 18222,
+      "sha256": "ba5fa988a82d175500dac392f518d7d86258c3743910b87f24218ef5602c91de"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/gameboy_apu.h",
+      "bytes": 3661,
+      "sha256": "3f464c0874e12995ddc3403587ab4bed0538c57e49d3179c7a0c50e6a1d96a12"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/upstream/gb.cpp",
+      "bytes": 34748,
+      "sha256": "c3ce71628faf03013234275e1ed5023b4b4393a843cd81b6b60f6dc0c625dee3"
+    },
+    {
+      "path": "sources/gameboy-sdk/vendor/mame-gameboy/upstream/gb.h",
+      "bytes": 5569,
+      "sha256": "79a124a25f43ba325c19940a351f44267654bb8652c651e53de069ce07389599"
+    },
+    {
+      "path": "sources/gameboy-sdk/wasm/gameboy_apu_wasm.cpp",
+      "bytes": 2076,
+      "sha256": "03ad182b928394ca58340a50e36570dc425ff080338bd196b903572638bc2db7"
+    }
+  ],
+  "generated": {
+    "gameboy_apu_wasm.js": {
+      "bytes": 11497,
+      "sha256": "bd5d7500c4a3c99763ac7cd27263e73c060f04df3b85167a0fed19f9dad5c4e5"
+    },
+    "gameboy_apu_wasm.wasm": {
+      "bytes": 13782,
+      "sha256": "ae2bccd3ed8f0c776fc8be198fa9fddebeb18db5654b9160eeef239c9a3faabd"
+    }
+  }
+}
