@@ -3603,7 +3603,7 @@ dependencies = [
 
 [[package]]
 name = "tetorica-dmg-synth-tauri"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "cpal",
  "serde",
