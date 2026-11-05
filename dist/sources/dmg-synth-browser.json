@@ -2,33 +2,224 @@
   "schemaVersion": 1,
   "product": "Tetorica DMG Synth",
   "productId": "tetorica-dmg-synth",
-  "version": "tauri-initial-20261104",
+  "version": "readable-20261105",
   "builder": {
-    "name": "esbuild",
-    "version": "0.28.2",
-    "define": {
-      "process": "undefined"
+    "name": "source-copy",
+    "minify": false,
+    "bundle": false,
+    "dependencyAnalyzer": {
+      "name": "esbuild",
+      "version": "0.28.2"
     }
   },
   "bundles": [
     {
       "path": "synth-dmg/synth.js",
-      "bytes": 109325,
-      "sha256": "f6e9a73e8233235641f786bebef07261bf29f7ac1137c0c95fd66445f1c6d604",
-      "localImports": []
+      "sourcePath": "docs/synth-dmg/synth.js",
+      "bytes": 17121,
+      "sha256": "89b4bdc91addd8d4de95b261d9210870e432f81bf012545f7e3de8358e4c3652",
+      "localImports": [
+        "../synth-spu/spu_synth_visualizer.js",
+        "../synth/synth_keyboard.js",
+        "./audio.js",
+        "./editor.js",
+        "./preset.js",
+        "./vgm_library.js"
+      ]
     },
     {
       "path": "synth-dmg/processor.js",
-      "bytes": 19875,
-      "sha256": "3bff52d7c29ec3c9d628e41d530ee0f276d8ec56fc3163eab8f4a9ae83cbd0e5",
+      "sourcePath": "docs/synth-dmg/processor.js",
+      "bytes": 2678,
+      "sha256": "aefc82a48bee081950eb66fe988d0e98e08d10d188e9d46085c28ab4f37f0894",
       "localImports": [
-        "../generated/gameboy_apu_wasm.js"
+        "../generated/gameboy_apu_wasm.js",
+        "../js/gameboyapu.js",
+        "./instrument.js"
       ]
     },
     {
       "path": "synth-dmg/synth.css",
-      "bytes": 26700,
-      "sha256": "8c7d4cd9a8204d271dc00c59294a7f156b4380c87cb8b500054136746fb968ba",
+      "sourcePath": "docs/synth-dmg/synth.css",
+      "bytes": 7192,
+      "sha256": "298bc0d073af6898e9a3314fe53ba78d52f4b46d9a813a7632efecb9622ce45c",
+      "localImports": [
+        "../synth-spu/synth.css"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "path": "js/gameboyapu.js",
+      "sourcePath": "docs/js/gameboyapu.js",
+      "bytes": 7136,
+      "sha256": "cbfd33c3eef9110f1d0940ff46ebfa8c151da3370687833f959e354c6ecb49d9",
+      "localImports": []
+    },
+    {
+      "path": "js/gameboysynth.js",
+      "sourcePath": "docs/js/gameboysynth.js",
+      "bytes": 13943,
+      "sha256": "32066bb478f7e3eb88f1790a67b0dbea680facfa02d8d67f4d310505147a12af",
+      "localImports": [
+        "./gameboyapu.js?v=audio-stability-2",
+        "./soundchip_pitch.js"
+      ]
+    },
+    {
+      "path": "js/opn_fm_vgm.js",
+      "sourcePath": "docs/js/opn_fm_vgm.js",
+      "bytes": 4213,
+      "sha256": "d9535987aa4284e817172b1cff3cfbdbe893cca70b6cebfe4c09f616802bbc1c",
+      "localImports": []
+    },
+    {
+      "path": "js/soundchip_pitch.js",
+      "sourcePath": "docs/js/soundchip_pitch.js",
+      "bytes": 2854,
+      "sha256": "c8bcce0f27c2500d6090b5e56660e697b8b03d7ec011cee4deba05664038bae9",
+      "localImports": []
+    },
+    {
+      "path": "js/vgm_file.js",
+      "sourcePath": "docs/js/vgm_file.js",
+      "bytes": 3428,
+      "sha256": "2539d82ea2b17f5d37b7f66e88bcc948acda4d906613358c14a1bd102c36bf48",
+      "localImports": []
+    },
+    {
+      "path": "js/ym2612vgm.js",
+      "sourcePath": "docs/js/ym2612vgm.js",
+      "bytes": 117637,
+      "sha256": "1587950d955d577262a11e754f533133b8194d65272e740c8b48b9f3b465e06b",
+      "localImports": [
+        "./opn_fm_vgm.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/audio.js",
+      "sourcePath": "docs/synth-dmg/audio.js",
+      "bytes": 6834,
+      "sha256": "ee66c7b78592f00b2928fd053a2bc6f4f00eea5de067b3879425d511201c2ef8",
+      "localImports": []
+    },
+    {
+      "path": "synth-dmg/editor.js",
+      "sourcePath": "docs/synth-dmg/editor.js",
+      "bytes": 20693,
+      "sha256": "b30ab7c05a23371daefac6c55e8f51c0ebd5e3a9237ac3e701413951942010d5",
+      "localImports": [
+        "./preset.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/instrument.js",
+      "sourcePath": "docs/synth-dmg/instrument.js",
+      "bytes": 7225,
+      "sha256": "5fbb14aadd957a3e048b04eb5f91aaffc09d551375a4998027b888bf243eb46d",
+      "localImports": [
+        "../js/gameboysynth.js",
+        "./preset.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/preset.js",
+      "sourcePath": "docs/synth-dmg/preset.js",
+      "bytes": 6392,
+      "sha256": "00833ea822dedf9e5aaeb0af0a1a91379eca1edc3e2c3023137d94226f5f420b",
+      "localImports": []
+    },
+    {
+      "path": "synth-dmg/processor.js",
+      "sourcePath": "docs/synth-dmg/processor.js",
+      "bytes": 2678,
+      "sha256": "aefc82a48bee081950eb66fe988d0e98e08d10d188e9d46085c28ab4f37f0894",
+      "localImports": [
+        "../generated/gameboy_apu_wasm.js",
+        "../js/gameboyapu.js",
+        "./instrument.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/synth.css",
+      "sourcePath": "docs/synth-dmg/synth.css",
+      "bytes": 7192,
+      "sha256": "298bc0d073af6898e9a3314fe53ba78d52f4b46d9a813a7632efecb9622ce45c",
+      "localImports": [
+        "../synth-spu/synth.css"
+      ]
+    },
+    {
+      "path": "synth-dmg/synth.js",
+      "sourcePath": "docs/synth-dmg/synth.js",
+      "bytes": 17121,
+      "sha256": "89b4bdc91addd8d4de95b261d9210870e432f81bf012545f7e3de8358e4c3652",
+      "localImports": [
+        "../synth-spu/spu_synth_visualizer.js",
+        "../synth/synth_keyboard.js",
+        "./audio.js",
+        "./editor.js",
+        "./preset.js",
+        "./vgm_library.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/vgm_import.js",
+      "sourcePath": "docs/synth-dmg/vgm_import.js",
+      "bytes": 9026,
+      "sha256": "47ddbb88b2e9aeeb83b2ede57ae71180ee89e7dbafe29bc34fd6bed8f6e7da31",
+      "localImports": [
+        "../js/vgm_file.js",
+        "../js/ym2612vgm.js",
+        "../vgm_analyzer/gameboy_voices.js",
+        "../vgm_analyzer/gameboy_waves.js",
+        "./preset.js"
+      ]
+    },
+    {
+      "path": "synth-dmg/vgm_library.js",
+      "sourcePath": "docs/synth-dmg/vgm_library.js",
+      "bytes": 5520,
+      "sha256": "a72d80a1ee675037268a10d91f0eddf067f262374dfae79faca13cc0d72a3a62",
+      "localImports": [
+        "./vgm_import.js"
+      ]
+    },
+    {
+      "path": "synth-spu/spu_synth_visualizer.js",
+      "sourcePath": "docs/synth-spu/spu_synth_visualizer.js",
+      "bytes": 10421,
+      "sha256": "0e4cba8d283d728579e592b28a87f008165b5d5d00d1cb4956e90b06f84d6b47",
+      "localImports": []
+    },
+    {
+      "path": "synth-spu/synth.css",
+      "sourcePath": "docs/synth-spu/synth.css",
+      "bytes": 23333,
+      "sha256": "8e45689b279e52db21c5ed6b29e26bd5d10896abcd8c834a1d77bc6950dcd0ad",
+      "localImports": []
+    },
+    {
+      "path": "synth/synth_keyboard.js",
+      "sourcePath": "docs/synth/synth_keyboard.js",
+      "bytes": 10010,
+      "sha256": "b7dc1daea64aa6e061bfdb2295010ee24eddaba51ab7ab6cf87c0f751be7c795",
+      "localImports": [
+        "../js/soundchip_pitch.js"
+      ]
+    },
+    {
+      "path": "vgm_analyzer/gameboy_voices.js",
+      "sourcePath": "docs/vgm_analyzer/gameboy_voices.js",
+      "bytes": 4702,
+      "sha256": "0769eaaa8150529c9a2e76d50e7857e519737da9c0a552e9f2a63eb0f165cb8a",
+      "localImports": []
+    },
+    {
+      "path": "vgm_analyzer/gameboy_waves.js",
+      "sourcePath": "docs/vgm_analyzer/gameboy_waves.js",
+      "bytes": 2475,
+      "sha256": "0ed850aab97071d70a9285640d5886ba28f181d45ef9ba6cf93c1937ca456dc2",
       "localImports": []
     }
   ],
@@ -70,8 +261,8 @@
     },
     {
       "path": "docs/synth-dmg/README.md",
-      "bytes": 9102,
-      "sha256": "0f9a04e450e44ef498bbb2304bee0c04d62e3bced9acaac795de3fb7916a7b0f"
+      "bytes": 9743,
+      "sha256": "b5ce67c338b63adc4cb66860acb1721d5b2263b630034dd6dc42f16116a9e305"
     },
     {
       "path": "docs/synth-dmg/audio.js",
@@ -160,8 +351,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 4029,
-      "sha256": "40b682244bc71be23780e03f3dbad157cc2359c465e680bbc74331d5de95c587"
+      "bytes": 4441,
+      "sha256": "a6e1929c6b45a7c0998532fe07cf2a2d7a87e9a2cf3aac45bcb9ef391668aeae"
     },
     {
       "path": "scripts/copy_gameboy_sources.mjs",
@@ -169,14 +360,29 @@
       "sha256": "5db052466a999dee0c18645727faf378e4d8318ae1b193d6dd71a720e4390f0c"
     },
     {
+      "path": "scripts/copy_readable_modules.mjs",
+      "bytes": 3657,
+      "sha256": "bf58b3f05bfc2a48f7a35a0cb3f797436ed6f379af251e8ecf03240ba297d05a"
+    },
+    {
       "path": "scripts/package_itch_dmg_synth.mjs",
-      "bytes": 7541,
-      "sha256": "6575a5a3edb9276ef5c33772fcd87daca309ed38c1760075d3077dbf1bf53ea4"
+      "bytes": 6353,
+      "sha256": "683a35fb1ac5a76f7b69a30827c963ab56fec33d0f4f2812b4629b0557aa1980"
     },
     {
       "path": "scripts/package_itch_dmg_synth.sh",
       "bytes": 181,
       "sha256": "5e2645d957b078ab19a3c1f01a8570b11a2d4e8f57eb04b733a3e949988d83de"
+    },
+    {
+      "path": "scripts/runtime_artifacts.mjs",
+      "bytes": 17918,
+      "sha256": "a811bffb77472b2d3d8b11c57d0477e216b867d00c75bf844b4089af0fb69d39"
+    },
+    {
+      "path": "scripts/wasm_sdk_inventory.mjs",
+      "bytes": 24241,
+      "sha256": "b65e5e1966756e6f20f4a47989611a0f1b702446e97d748f92e87eaad245bab5"
     },
     {
       "path": "tetorica_src/runtime/generated/gameboy_apu_wasm.js",
@@ -186,8 +392,8 @@
   ],
   "sourceArchive": {
     "path": "sources/dmg-synth-browser-inputs.zip",
-    "bytes": 593023,
-    "sha256": "42bfd3d8fb87de9dc21fd04cb1b9fdde4af0a8beb526331ff05113af1e88fac5"
+    "bytes": 606498,
+    "sha256": "f390523a2fcfd5279789d363688fdc7b3574171839b2255223c673fb269dd4f1"
   },
   "sourceCheck": {
     "inputs": 12,

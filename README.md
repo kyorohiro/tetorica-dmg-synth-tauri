@@ -67,8 +67,8 @@ python3 scripts/import_release.py --check
 npm test
 ```
 
-`dist/` contains the original ZIP contents, including the WASM pair, corresponding
-sources and license notices. `release.lock.json` pins the archive and every file
+Immediately after import, `dist/` contains the original ZIP contents, including
+the WASM pair, corresponding sources and license notices. `release.lock.json` pins the archive and every file
 by SHA-256. Keep `dist/` and the lock together in the same commit; the ZIP itself
 does not need to be committed. Invalid imports keep the previous distribution.
 
@@ -78,6 +78,41 @@ from converting imported line endings and invalidating those exact byte hashes.
 Desktop extensions are injected into the local app at runtime. They do not edit
 the authenticated distribution. The browser version exposes an audio adapter only
 to the local, top-level Tauri window.
+
+## Edit and reuse the browser source
+
+The readable source-copy release runs the original modules directly:
+`dist/synth-dmg/synth.js` is the app entry, with `audio.js`, `editor.js`,
+`instrument.js` and the other modules beside it. Shared APIs are in `dist/js/`.
+Edit those live files; no JavaScript bundling or minification step is needed.
+`dist/generated/gameboy_apu_wasm.js` is the generated WASM loader, so its compact
+compiler output is expected. Native source and build information remain under
+`dist/sources/`. Older imported releases keep their original modules inside
+`sources/dmg-synth-browser-inputs.zip`; import a source-copy release first when
+those live entry files are still bundled.
+
+```sh
+# Edit dist/synth-dmg/editor.js, synth.js, CSS, or other browser modules.
+npm run record:edits
+npm run dev
+# After further edits, record again before dev/build:
+npm run record:edits
+npm run build
+```
+
+`record:edits` records changed/added file SHA-256 hashes and optional-file deletions
+in **local-changes.json**, tied to the imported ZIP's SHA-256. Root `index.html`
+and `synth-dmg/synth.js` must remain present. The command keeps
+`release.lock.json` and the original source receipts unchanged; those describe
+the imported release, while the local manifest describes your version.
+
+Dev/build checks verify the imported baseline plus exactly those recorded edits.
+Later unrecorded edits, a manifest for another ZIP, unsafe paths and symlinks are
+rejected. Reverting all edited files and recording again removes the manifest.
+Keep your edited `dist/` and `local-changes.json` together when sharing the fork.
+A successful new ZIP import replaces `dist/` and clears local changes, so commit
+or copy your edits before importing. An invalid ZIP keeps the current files and
+manifest. Desktop adapters remain separately editable under `desktop/`.
 
 ## Test and build
 
