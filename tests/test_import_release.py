@@ -80,6 +80,35 @@ class ImportTests(unittest.TestCase):
         files = release_files()
         self.assertEqual(self.unpack(files), {name: importer.digest(data) for name, data in files.items()})
 
+    def test_accepts_additional_bundles_and_modules_and_verifies_their_receipts(self):
+        files = release_files()
+        receipt = json.loads(files['sources/dmg-synth-browser.json'])
+        for section, name in [('bundles', 'js/native-fx-worklet.js'),
+                              ('modules', 'js/native_fx_engine.js')]:
+            files[name] = b'// additional runtime file'
+            receipt.setdefault(section, []).append({
+                'path': name, 'bytes': len(files[name]), 'sha256': importer.digest(files[name]),
+            })
+        files['sources/dmg-synth-browser.json'] = json.dumps(receipt).encode()
+        self.assertEqual(self.unpack(files), {name: importer.digest(data) for name, data in files.items()})
+        for name in ['js/native-fx-worklet.js', 'js/native_fx_engine.js']:
+            for replacement in [None, b'changed']:
+                changed = dict(files)
+                if replacement is None:
+                    del changed[name]
+                else:
+                    changed[name] = replacement
+                with self.subTest(name=name, replacement=replacement), self.assertRaises(ValueError):
+                    self.unpack(changed)
+
+    def test_rejects_missing_required_bundle_receipt_even_when_file_exists(self):
+        files = release_files()
+        receipt = json.loads(files['sources/dmg-synth-browser.json'])
+        receipt['bundles'].pop()
+        files['sources/dmg-synth-browser.json'] = json.dumps(receipt).encode()
+        with self.assertRaisesRegex(ValueError, 'Expected complete DMG Synth bundle receipts'):
+            self.unpack(files)
+
     def test_check_detects_modified_or_extra_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

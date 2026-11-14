@@ -67,9 +67,13 @@
     const pin = document.getElementById('synthPinButton');
     const audio = document.getElementById('synthMenuAudio');
     const reload = host.querySelector('[data-reset-offline-cache]');
+    const existingMenu = document.getElementById('synthMenu');
     const load = document.getElementById('loadPreset'), save = document.getElementById('savePreset');
     const presetInput = document.getElementById('presetFileInput');
-    if (!identity || !pin || !audio || !reload || !load || !save || !presetInput) return;
+    if (!identity || !pin || !audio || !reload) return;
+    if (existingMenu) {
+      if (!existingMenu.querySelector('#synthMenuButton') || !existingMenu.querySelector('.synth-menu-panel')) return;
+    } else if (!load || !save || !presetInput) return;
     host.dataset.toolbarMounted = 'true';
     const style = document.createElement('style');
     style.textContent = `
@@ -90,11 +94,13 @@
       .synth-menu-actions .toolbar-button { text-align:left; padding:8px 10px; min-height:32px; }
     `;
     document.head.append(style);
-    const menu = document.createElement('details');
-    menu.id = 'synthMenu'; menu.className = 'synth-menu';
-    menu.innerHTML = `<summary id="synthMenuButton" class="synth-icon-button" aria-label="Menu" title="Menu" aria-expanded="false" aria-controls="synthMenuPanel">
+    const menu = existingMenu || document.createElement('details');
+    if (!existingMenu) {
+      menu.id = 'synthMenu'; menu.className = 'synth-menu';
+      menu.innerHTML = `<summary id="synthMenuButton" class="synth-icon-button" aria-label="Menu" title="Menu" aria-expanded="false" aria-controls="synthMenuPanel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </summary><div id="synthMenuPanel" class="synth-menu-panel"></div>`;
+    }
     pin.classList.add('synth-icon-button');
     pin.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path class="pin-head" d="M9 3h6v5l3 5v2H6v-2l3-5z"/><path d="M12 15v7"/></svg>';
     const panel = menu.querySelector('.synth-menu-panel');
@@ -108,20 +114,25 @@
       }
       panel.append(section); return section;
     }
-    const imports = section('Import', load, 'Instrument · DMG preset…'); imports.append(presetInput);
-    const loadVgm = document.getElementById('loadVgm');
-    if (loadVgm) {
-      const button = document.createElement('button'); button.id = 'synthMenuVgm'; button.type = 'button';
-      button.className = 'toolbar-button'; button.dataset.closeSynthMenu = ''; button.textContent = 'Sounds · VGM / VGZ…';
-      button.addEventListener('click', () => {button.blur(); loadVgm.click();}); imports.append(button);
+    if (!existingMenu) {
+      const imports = section('Import', load, 'Instrument · DMG preset…'); imports.append(presetInput);
+      const loadVgm = document.getElementById('loadVgm');
+      if (loadVgm) {
+        const button = document.createElement('button'); button.id = 'synthMenuVgm'; button.type = 'button';
+        button.className = 'toolbar-button'; button.dataset.closeSynthMenu = ''; button.textContent = 'Sounds · VGM / VGZ…';
+        button.addEventListener('click', () => {button.blur(); loadVgm.click();}); imports.append(button);
+      }
+      section('Export', save, 'Instrument · DMG preset…');
     }
-    section('Export', save, 'Instrument · DMG preset…');
     audio.classList.add('synth-menu-section'); panel.append(audio);
     section(null, reload);
     host.replaceChildren(menu, pin);
     const group = document.createElement('div'); group.className = 'synth-title-group';
     identity.before(group); group.append(host, identity);
 
+    // The frontend owns its complete menu and its existing input listeners.
+    // Moving it preserves Files/Import; avoid duplicate Escape/focus handlers.
+    if (existingMenu) return;
     const button = document.getElementById('synthMenuButton');
     const close = () => {menu.open = false; button.setAttribute('aria-expanded', 'false');};
     menu.addEventListener('toggle', () => button.setAttribute('aria-expanded', String(menu.open)));

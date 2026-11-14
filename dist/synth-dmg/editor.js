@@ -5,8 +5,9 @@ import {createDefaultPreset, readPreset, waveShape} from './preset.js';
 /** A passive editor. Editing never creates an audio device. */
 export function createEditor({root, onChange = () => {}, onError = () => {}}) {
   const doc = root.ownerDocument, win = doc.defaultView ?? globalThis;
-  const cleanups = [], fields = new Map(), pointerControls = new WeakSet();
-  let preset = createDefaultPreset(), disposed = false, stroke = null;
+  const cleanups = [], fields = new Map(), pointerControls = new WeakSet(), cancelGestures=[];
+  let dragging=0;
+  let preset = createDefaultPreset(), disposed = false, stroke = null, liveChannel = null, liveOrigin = 'Code';
   const make = (tag, className, text) => {
     const element = doc.createElement(tag);
     if (className) element.className = className;
@@ -21,9 +22,10 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
   function commit(mutator) {
     if (disposed) return;
     try {
+      const previous=readPreset(preset),channel=liveChannel,origin=liveOrigin;
       const next = readPreset(preset); mutator(next);
       preset = readPreset(next); render();
-      Promise.resolve(onChange(readPreset(preset))).catch(report);
+      Promise.resolve(onChange(readPreset(preset),{previous,channel,origin})).catch(report);
     } catch (error) { render(); report(error); }
   }
   function performanceFocus(input) {
@@ -136,7 +138,9 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
     listen(output, 'pointerdown', event => {
       if (disabled || event.button !== 0) return;
       event.preventDefault(); doc.activeElement?.blur();
+      if(drag)endDrag();
       drag = {id: event.pointerId, x: event.clientX, value: get(preset)};
+      dragging++;
       output.setPointerCapture(event.pointerId); output.classList.add('is-dragging');
     });
     listen(output, 'pointermove', event => {
@@ -145,10 +149,12 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
     function endDrag(event) {
       if (!drag || event?.pointerId !== undefined && event.pointerId !== drag.id) return;
       const pointer = drag.id; drag = null; output.classList.remove('is-dragging');
+      dragging--;
       if (output.hasPointerCapture?.(pointer)) output.releasePointerCapture(pointer);
     }
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(output, type, endDrag);
     listen(win, 'blur', endDrag);
+    cancelGestures.push(()=>endDrag());
     fields.set(id, {input: output, get, update: refresh});
     return {setDisabled(value) {disabled = value;if(disabled) endDrag();refresh();}};
   }
@@ -175,7 +181,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
   }
   const body = make('div', 'gb-editor'); root.append(body);
   const sourceBar = make('div', 'gb-source-bar'); body.append(sourceBar);
-  select(sourceBar, 'Source', 'source', [['pulse', 'Pulse'], ['wave', 'Wave'], ['noise', 'Noise']], value => value.source, (value, source) => {value.source = source;});
+  const sourceControl=select(sourceBar, 'Source', 'source', [['pulse', 'Pulse'], ['wave', 'Wave'], ['noise', 'Noise']], value => value.source, (value, source) => {value.source = source;});
   const sourceHint = make('p'); sourceBar.append(sourceHint);
 
   const pulse = card('Pulse · hardware square waves'), pulseFields = group(pulse);
@@ -186,7 +192,15 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
   pulseSvg.setAttribute('viewBox', '0 0 320 46'); pulseSvg.setAttribute('preserveAspectRatio', 'none'); pulseSvg.append(pulsePath); pulsePreview.append(pulseSvg); pulse.append(pulsePreview);
   envelope(pulse, 'pulse', 'pulse');
   const sweepFields = group(section(pulse, 'Hardware pitch sweep · CH1 only'));
-  const sweepEnabled = checkbox(sweepFields, 'Enable Sweep', 'sweepEnabled', value => value.pulse.sweep.enabled, (value, enabled) => {value.pulse.sweep.enabled = enabled;});
+  const sweepEnabled = checkbox(sweepFields, 'Enable Sweep', 'sweepEnabled', value => value.pulse.sweep.enabled, (value, enabled) => {
+    value.pulse.sweep.enabled = enabled;
+    // A live CH can report NR10=0, with no configured pace/shift to enable.
+    // Give this deliberate On gesture the same useful defaults as a new sound.
+    if(enabled&&liveChannel===0&&!value.pulse.sweep.period&&!value.pulse.sweep.shift){
+      const defaults=createDefaultPreset().pulse.sweep;
+      value.pulse.sweep.period=defaults.period;value.pulse.sweep.shift=defaults.shift;
+    }
+  });
   const sweepControls = [
     select(sweepFields, 'Direction', 'sweepDirection', [['up', 'Pitch up'], ['down', 'Pitch down']], value => value.pulse.sweep.direction, (value, direction) => {value.pulse.sweep.direction = direction;}),
     number(sweepFields, 'Pace · 0 = disabled', 'sweepPeriod', 0, 7, value => value.pulse.sweep.period, (value, period) => {value.pulse.sweep.period = period;}),
@@ -269,8 +283,10 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
     waveReadout.textContent = 'Wave applied · press a key to hear it';
   });
   function cancelStroke(event) {
-    if (!stroke || event.pointerId !== undefined && stroke.id !== event.pointerId) return;
-    stroke = null; drawWave(); waveReadout.textContent = 'Drawing cancelled · previous wave kept';
+    if (!stroke || event?.pointerId !== undefined && stroke.id !== event.pointerId) return;
+    const pointer=stroke.id;stroke = null;
+    if(canvas.hasPointerCapture?.(pointer))canvas.releasePointerCapture(pointer);
+    drawWave(); waveReadout.textContent = 'Drawing cancelled · previous wave kept';
   }
   listen(canvas, 'pointercancel', cancelStroke); listen(canvas, 'lostpointercapture', cancelStroke);
   listen(win, 'blur', cancelStroke);
@@ -296,11 +312,14 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
       else if (doc.activeElement !== input) input.value = String(value);
     }
     pulse.hidden = preset.source !== 'pulse'; wave.hidden = preset.source !== 'wave'; noise.hidden = preset.source !== 'noise';
+    sourceControl.setDisabled(liveChannel!==null);
+    sweepEnabled.disabled=liveChannel!==null&&liveChannel!==0;
     for (const input of sweepControls) {
-      if (input.setDisabled) input.setDisabled(!preset.pulse.sweep.enabled);
-      else input.disabled = !preset.pulse.sweep.enabled;
+      if (input.setDisabled) input.setDisabled(!preset.pulse.sweep.enabled||liveChannel!==null&&liveChannel!==0);
+      else input.disabled = !preset.pulse.sweep.enabled||liveChannel!==null&&liveChannel!==0;
     }
     sourceHint.textContent = preset.source === 'pulse' ? (preset.pulse.sweep.enabled ? 'CH1 · one voice with hardware Sweep.' : 'CH1 + CH2 · two voices in round robin.') : preset.source === 'wave' ? 'CH3 · one voice, with your own Wave RAM.' : 'CH4 · one noise voice. Keys trigger; they do not change pitch.';
+    if(liveChannel!==null)sourceHint.textContent=liveOrigin==='VGM'?`VGM CH ${liveChannel+1} · read-only sent / configured ${preset.source} settings.`:`${liveOrigin} CH ${liveChannel+1} · edit this physical channel. Choose another CH above to change source.`;
     const high = preset.pulse.duty * 80; let path = '';
     for (let index = 0; index < 4; index++) {const x = index * 80; path += `${index ? 'L' : 'M'}${x} 10 L${x + high} 10 L${x + high} 36 L${x + 80} 36 `;}
     pulsePath.setAttribute('d', path); resizeWave(); drawWave(stroke?.samples);
@@ -308,12 +327,14 @@ export function createEditor({root, onChange = () => {}, onError = () => {}}) {
   }
   render();
   return {
-    update(value) {
+    update(value, {channel = null, origin = 'Code'} = {}) {
       if (disposed) return;
       const next = readPreset(value);
-      if (stroke && (next.source !== preset.source || next.wave.samples.some((sample, index) => sample !== preset.wave.samples[index]))) stroke = null;
-      preset = next; render();
+      if(channel!==liveChannel||origin!==liveOrigin||next.source!==preset.source){for(const cancel of cancelGestures)cancel();cancelStroke();}
+      if (stroke && next.wave.samples.some((sample, index) => sample !== preset.wave.samples[index])) cancelStroke();
+      preset = next; liveChannel = channel; liveOrigin = origin; render();
     },
+    isInteracting:()=>Boolean(stroke||dragging),
     dispose() {if (disposed) return; disposed = true; stroke = null; for (const cleanup of cleanups) cleanup(); body.remove();},
   };
 }

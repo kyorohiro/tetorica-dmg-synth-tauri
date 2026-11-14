@@ -8,7 +8,7 @@ const {gzipSync} = require('node:zlib');
 const http = require('node:http');
 
 const root = path.resolve(__dirname, '..');
-const options = {out:path.join(root,'docs/desktop_browser_20261104.json'), screenshots:null};
+const options = {dist:path.join(root,'dist'),out:path.join(root,'docs/desktop_browser_20261104.json'), screenshots:null};
 for(let index=2;index<process.argv.length;index++) {
   const name=process.argv[index].replace(/^--/,'');
   assert(Object.hasOwn(options,name),`Unknown option: ${name}`);
@@ -26,7 +26,7 @@ function vgm() {
 }
 
 async function run(name, engine, backend) {
-  const browser=await engine.launch({headless:true});
+  const browser=await engine.launch({headless:true,...(name==='chromium'?{args:['--mute-audio']}:{})});
   const page=await browser.newPage({viewport:{width:1280,height:1000},acceptDownloads:true});
   page.setDefaultTimeout(15000);
   const errors=[], missing=[], consoleErrors=[];
@@ -40,8 +40,8 @@ async function run(name, engine, backend) {
     if(url.hostname!=='tauri.localhost') {missing.push(url.href);return route.abort();}
     try {
       const file=url.pathname==='/desktop-audio-worklet.js' ? path.join(root,'desktop/audio-worklet.js')
-        :path.resolve(root,'dist','.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
-      assert(file.startsWith(path.join(root,'dist')+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
+        :path.resolve(options.dist,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
+      assert(file.startsWith(options.dist+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
       let body=await fs.readFile(file);
       if(url.pathname==='/synth-dmg/synth.js') body=Buffer.concat([body,Buffer.from('\n;\n'+audio)]);
       return route.fulfill({status:200,body,contentType:mime[path.extname(file)]||'application/octet-stream',
@@ -127,6 +127,16 @@ async function run(name, engine, backend) {
     throw Error('State did not settle: '+JSON.stringify(value));
   };
   const menu=async()=>{if(!await page.locator('#synthMenu').evaluate(node=>node.open))await page.click('#synthMenuButton');};
+  const selectProjectFile=async filename=>{
+    if(await page.locator('#dmgFilesPanel').evaluate(node=>node.hidden))await page.click('#dmgFilesToggle');
+    // A newly imported preset folder is expanded, but retain compatibility
+    // with saved projects whose folder state was previously collapsed.
+    for(let index=0;index<12;index++){
+      const closed=page.locator('#dmgFilesTree details:not([open]) > summary');
+      if(!await closed.count())break;await closed.first().click();
+    }
+    await page.locator('#dmgFilesTree button[data-file-path]').locator(`xpath=self::*[@data-file-path=${JSON.stringify(filename)}]`).click();
+  };
   const audition=async()=>{
     await page.keyboard.down('a');await wait(value=>value.voices.length===1);
     await page.waitForFunction(async()=>await window.desktopAudit.webPeak()>.001);
@@ -172,15 +182,29 @@ async function run(name, engine, backend) {
     assert.equal(await page.evaluate(()=>window.desktopAudit.calls.filter(call=>call.command==='reload_window').length),0);
 
     console.log(`CHECK ${name}: menu VGM chooser / actual Wave preset file / keyboard focus`);
-    await menu();const chooser=page.waitForEvent('filechooser');await page.click('#synthMenuVgm');
+    await menu();const chooser=page.waitForEvent('filechooser');
+    await page.click(await page.locator('#synthMenuVgm').count()?'#synthMenuVgm':'#loadVgm');
     await(await chooser).setFiles({name:'self-authored.vgz',mimeType:'application/gzip',buffer:gzipSync(vgm())});
-    await page.waitForFunction(()=>document.querySelectorAll('[data-vgm-voice]').length===1&&document.querySelector('#vgmLibrary').dataset.loading==='false');
-    await page.click('[data-vgm-voice]');let current=await wait(value=>value.preset.pulse.volume===9&&value.preset.pulse.duty===.25);
+    await page.waitForFunction(()=>document.querySelectorAll('[data-vgm-voice]').length===1&&document.querySelector('#vgmLibrary')?.dataset.loading==='false'||
+      document.querySelector('#vgmImport')?.dataset.loading==='false'&&[...document.querySelectorAll('#dmgFilesTree button[data-file-path]')].some(node=>node.dataset.filePath.startsWith('/presets/self-authored/')));
+    const filesImport=await page.locator('[data-vgm-voice]').count()===0;
+    if(filesImport){
+      const path=await page.locator('#dmgFilesTree button[data-file-path]').evaluateAll(nodes=>nodes.find(node=>node.dataset.filePath.startsWith('/presets/self-authored/')).dataset.filePath);
+      assert.equal((await state()).preset.name,preset.name,'VGM import itself must keep the current instrument');
+      await selectProjectFile(path);
+    }else await page.click('[data-vgm-voice]');
+    let current=await wait(value=>value.preset.pulse.volume===9&&value.preset.pulse.duty===.25);
     await audition();
+    const beforeJson=structuredClone(current.preset);
     const imported=structuredClone(preset);imported.name='Desktop Wave test';imported.source='wave';
     imported.wave.samples=Array.from({length:32},(_,index)=>index<16?15:0);imported.wave.level=.5;
     await menu();const waveChooser=page.waitForEvent('filechooser');await page.click('#loadPreset');
     await(await waveChooser).setFiles({name:'desktop-wave.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(imported))});
+    if(filesImport){
+      await page.locator('#dmgFilesTree button[data-file-path="/desktop-wave.json"]').waitFor({state:'attached'});
+      assert.deepEqual((await state()).preset,beforeJson,'JSON import itself must remain passive');
+      await selectProjectFile('/desktop-wave.json');
+    }
     current=await wait(value=>value.preset.name===imported.name&&value.preset.source==='wave');assert.deepEqual(current.preset,imported);await audition();
 
     console.log(`CHECK ${name}: actual native-capture Worklet PCM / route switch / device failure fallback`);
@@ -212,7 +236,7 @@ async function run(name, engine, backend) {
     return {engine:name,desktopToolbar:true,pin:true,nativePresetBinarySave:true,reloadCancel:true,vgzMenuChooser:true,
       presetFileImport:true,keyboardAfterMenus:true,nativeCapturePcm:true,switchPreservesPreset:true,nativeFailureFallback:true,
       switchStopsPulseAndPitch:true,switchBlocksPerformance:true,nativeSaveCancel:true,
-      oneAudioContext:true,mobileOverflow:overflow,...measurements,pageErrors:errors,missingAssets:missing,
+      oneAudioContext:true,filesImport,passiveJsonImport:filesImport,mobileOverflow:overflow,...measurements,pageErrors:errors,missingAssets:missing,
       nativeHost:'mocked Tauri IPC; no CPAL device',physicalOutput:'muted'};
   } catch(error) {
     console.error(JSON.stringify({engine:name,audioStatus:await page.locator('#audioStatus').textContent().catch(()=>null),errors,missing,consoleErrors}));
@@ -225,8 +249,8 @@ async function run(name, engine, backend) {
   const server=http.createServer(async(request,response)=>{
     try {
       const name=decodeURIComponent(new URL(request.url,'http://localhost').pathname);
-      const file=name==='/desktop-audio-worklet.js'?path.join(root,'desktop/audio-worklet.js'):path.resolve(root,'dist','.'+name);
-      assert(file.startsWith(path.join(root,'dist')+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
+      const file=name==='/desktop-audio-worklet.js'?path.join(root,'desktop/audio-worklet.js'):path.resolve(options.dist,'.'+name);
+      assert(file.startsWith(options.dist+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
       const bytes=await fs.readFile(file);response.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','access-control-allow-origin':'*'});response.end(bytes);
     } catch(error){response.writeHead(404,{'access-control-allow-origin':'*'});response.end('Missing test asset');}
   });
@@ -234,7 +258,7 @@ async function run(name, engine, backend) {
   try {
     const backend=`http://tauri.localhost:${server.address().port}`;
     const rows=[];for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])rows.push(await run(name,engine,backend));
-    await fs.mkdir(path.dirname(options.out),{recursive:true});await fs.writeFile(options.out,JSON.stringify({passed:true,rows},null,2)+'\n');
+    await fs.mkdir(path.dirname(options.out),{recursive:true});await fs.writeFile(options.out,JSON.stringify({passed:true,dist:options.dist,rows},null,2)+'\n');
     console.log(`Desktop browser check passed: ${options.out}`);
   } finally {await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});
