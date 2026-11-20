@@ -4,13 +4,12 @@
   "sdk": {
     "schemaVersion": 1,
     "name": "tetorica-soundchip-native",
-    "version": "0.1.8-huc-state",
+    "version": "0.1.8-fm2608-source-mixer",
     "sourceCommit": "95cf71a857b15d0ea932ebf97d5fde80b5e80a95",
-    "archiveName": "tetorica-soundchip-native-0.1.8-huc-state-sources.zip",
-    "archiveSha256": "7fdb39e2c648ea1498279134560579ead409ab302f36d8c9ae7a61d8c4aa712d",
-    "manifestSha256": "e839739e9e7afc68003edc9c81d90535a2f949f6ab6c886dfe9059cf434be31d",
-    "fileCount": 481,
-    "unpublished": true,
+    "archiveName": "tetorica-soundchip-native-0.1.8-fm2608-source-mixer-sources.zip",
+    "archiveSha256": "2664067b9c4e652ecc58bf9fdf5db2ee40d9ef4038403fcefb53a6964e7df34f",
+    "manifestSha256": "83c0adec744e8ddd04cbf733c6e83460bc5ff69eff39d7d772f4df454ca5f1cf",
+    "fileCount": 486,
     "localCandidate": {
       "baseCommit": "95cf71a857b15d0ea932ebf97d5fde80b5e80a95",
       "changedPaths": [
@@ -21,17 +20,34 @@
         "catalog/source_inventory.json",
         "docs/huc6280-local-candidate.json",
         "docs/huc6280-state.md",
+        "docs/ym2413-state.md",
+        "docs/ym2608-source-mixer.md",
         "native/CMakeLists.txt",
         "native/include/tetorica/huc6280.hpp",
         "native/include/tetorica/huc6280_state.h",
         "native/tests/huc6280_state_fixture.cpp",
         "scripts/build_huc6280_wasm.sh",
+        "scripts/build_spc_wasm.sh",
+        "scripts/build_ym2413_wasm.sh",
+        "scripts/build_ym2608_wasm.sh",
         "sdk.json",
         "tests/huc6280_state_wasm_smoke.mjs",
+        "tests/ym2413_state_wasm_smoke.mjs",
+        "tests/ym2608_output_gains_wasm_smoke.mjs",
+        "tests/ym2608_source_gains_wasm_smoke.mjs",
+        "vendor/mame-ay8910/README.md",
+        "vendor/mame-ay8910/ay8910.cpp",
+        "vendor/mame-ay8910/ay8910.h",
         "vendor/mame-huc6280/README.md",
         "vendor/mame-huc6280/huc6280.cpp",
         "vendor/mame-huc6280/huc6280.h",
-        "wasm/huc6280_wasm.cpp"
+        "vendor/snes-spc/README.md",
+        "vendor/snes-spc/snes_spc/SNES_SPC.h",
+        "wasm/ay8910_wasm.cpp",
+        "wasm/huc6280_wasm.cpp",
+        "wasm/spc_wasm.cpp",
+        "wasm/ym2413_wasm.cpp",
+        "wasm/ym2608_wasm.cpp"
       ]
     }
   },
@@ -122,8 +138,8 @@
     },
     {
       "path": "sources/gameboy-sdk/sdk.json",
-      "bytes": 295,
-      "sha256": "4f1d607f69cd191c717f349c0df3df8e5f5da9fb16a014137966af5a70a2dcd5"
+      "bytes": 305,
+      "sha256": "48b53d9cfee9ee7f8f9c6501fce6edfd5c530bd1e9878c8523285d4a7aaac2cf"
     },
     {
       "path": "sources/gameboy-sdk/vendor/mame-gameboy/LICENSE",

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Shared Code runtime/editor over the upper editor's existing physical APU.
 import {createPlaygroundCodeRuntime} from '../js/playground_code_runtime.js';
-import {setupSynthCodeControls} from '../synth/synth_code_controls.js?v=draft-reconnect-1';
+import {setupSynthCodeControls} from '../synth/synth_code_controls.js?v=huc-working-saved-1';
 import {selectGameboyCodeDeclarations} from './code_declarations.js';
 import {createGameboyCodeAudio} from './code_audio.js';
-import {createGameboyCodeProject,GAMEBOY_PROJECT_FILE_BYTES} from './code_project.js?v=draft-reconnect-1';
-import {setupGameboyCodeFiles} from './code_files.js?v=draft-reconnect-1';
+import {createGameboyCodeProject,GAMEBOY_PROJECT_FILE_BYTES} from './code_project.js?v=dmg-timed-1';
+import {setupGameboyCodeFiles} from './code_files.js?v=dmg-timed-1';
+import {DMG_TIMED_EXAMPLES} from './code_examples.js';
 
 export const GAMEBOY_STARTER_CODE=`const gb = await useSoundChip("gameboy");
 setBpm(120);
@@ -26,10 +27,11 @@ liveLoop("melody", async () => {
 });
 `;
 const aborted=()=>new DOMException('DMG Code stopped','AbortError');
-export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,applySettings,stopKeyboard,
-  stopSong=async()=>{},beforeSoundApply=stopSong,beforeRun=async()=>{},prepareOutput=async()=>{},onActivity=()=>{},setStatus=()=>{}}={}){
+export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,getSaveSoundSettings=getSettings,applySettings,stopKeyboard,
+  stopSong=async()=>{},beforeSoundApply=stopSong,beforeRun=async()=>{},prepareOutput=async()=>{},onActivity=()=>{},
+  onViewChange=()=>{},onExpandedChange=()=>{},setStatus=()=>{}}={}){
   let disposed=false,epoch=0,modeEpoch=0,runtime=null,controls=null,files=null;
-  const project=createGameboyCodeProject({settings:getSettings(),getStarterCode:()=>GAMEBOY_STARTER_CODE});
+  const project=createGameboyCodeProject({settings:getSettings(),getStarterCode:()=>GAMEBOY_STARTER_CODE,starterFiles:DMG_TIMED_EXAMPLES});
   const audio=createGameboyCodeAudio({ensureReady:ensureAudio,getAudio,onLog:line=>controls?.appendLog(line)});
   const valid=token=>{if(disposed||token!==epoch)throw aborted();};
   function openOutput(){
@@ -43,7 +45,7 @@ export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,applySett
     if(!disposed&&request===modeEpoch&&!runtime?.getState().running)audio.open();
     onActivity();
   }
-  files=setupGameboyCodeFiles({project,getSettings,applySettings,setStatus,
+  files=setupGameboyCodeFiles({project,getSettings,getSaveSoundSettings,applySettings,setStatus,
     async onBeforeSoundApply(){await beforeSoundApply();if(!runtime?.getState().running)await stopKeyboard();},
     async onBeforeWorkspaceReplace(){await stopSong();await stop();await stopKeyboard();}});
   function getRuntime(){
@@ -57,7 +59,7 @@ export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,applySett
       },
       now:()=>getAudio()?.context.currentTime??0,useSoundChip:name=>audio.useSoundChip(name),fx:audio.fx,
       resolveNoteTarget:audio.resolveNoteTarget,
-      readFile:(...args)=>project.readFile(...args),prepareSource:(...args)=>project.prepareSource(...args),
+      readFile:(...args)=>project.readSavedFile(...args),prepareSource:(...args)=>project.prepareSavedSource(...args),
       onLog:line=>controls?.appendLog(line),onState:state=>{controls?.setRuntimeState(state);onActivity();},
       beforeStopSoundChips(){epoch++;return audio.beforeStop();},
       async stopSoundChips(){
@@ -69,7 +71,7 @@ export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,applySett
     return runtime;
   }
   controls=setupSynthCodeControls({project,files,getRuntime,
-    keepRunningOnKeyboard:true,
+    keepRunningOnKeyboard:true,persistentExpanded:true,
     allowTextFiles:true,maxTextLength:GAMEBOY_PROJECT_FILE_BYTES,writeText:(path,source)=>project.writeEditorText(path,source),
     editorChip:'gameboy',transformDeclarations:selectGameboyCodeDeclarations,
     journalKey:'tetorica-dmg-synth-pending-code',getStarterCode:()=>GAMEBOY_STARTER_CODE,
@@ -77,11 +79,14 @@ export function setupGameboyCodeHost({ensureAudio,getAudio,getSettings,applySett
     async onModeChange(){
       modeEpoch++;openOutput();
       onActivity();
-    },setStatus,
+    },onViewChange,onExpandedChange,setStatus,
   });
-  return{project,files,controls,ready:controls.ready,
+  const ready=controls.ready.then(()=>{
+    if(!disposed)try{project.ensureStarterFiles();}catch(error){setStatus(`Examples were not added: ${error.message}`);}
+  });
+  return{project,files,controls,ready,
     isCodeMode:()=>controls.isCodeMode(),isRunning:()=>Boolean(runtime?.getState().running),
-    getState:()=>runtime?.getState()??{state:'idle',running:false},stop,openOutput,markSoundDirty:()=>files.markSoundDirty(),
+    getState:()=>runtime?.getState()??{state:'idle',running:false},stop,openOutput,markSoundDirty:(value)=>files.markSoundDirty(value),
     async dispose(){if(disposed)return;await stop();disposed=true;epoch++;controls.dispose();await files.dispose();await audio.dispose();},
   };
 }

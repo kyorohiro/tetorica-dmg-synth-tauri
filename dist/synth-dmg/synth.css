@@ -84,16 +84,41 @@ footer div { display:flex; flex-wrap:wrap; align-items:baseline; gap:5px; }
 }
 
 /* Shared Code / Files layout, with the DMG palette. */
+.dmg-workspace-switch { display:inline-flex; }
+.dmg-workspace-switch > button { border-radius:0; }
+.dmg-workspace-switch > button:first-child { border-radius:999px 0 0 999px; }
+.dmg-workspace-switch > button:last-child { border-radius:0 999px 999px 0; margin-left:-1px; }
+.dmg-workspace-switch > button[aria-pressed="true"] { color:#fff; }
+.dmg-chip-tabs { display:flex; flex-wrap:wrap; gap:4px; min-width:0; border-bottom:1px solid var(--line); margin:0 0 12px; }
+.dmg-chip-tabs > button { flex:0 0 auto; min-height:34px; padding:7px 11px; border-radius:8px 8px 0 0; margin-bottom:-1px; font-size:.77rem; }
+.dmg-chip-tabs > button[aria-selected="true"] { background:#e4daec; border-bottom-color:#e4daec; color:#55446d; }
 .dmg-code-workspace { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; align-items:start; }
 .dmg-code-workspace.has-files { grid-template-columns:230px minmax(0,1fr); }
-.dmg-main,.dmg-expanded-code,.dmg-input-section,.dmg-code-panel { min-width:0; }
+.dmg-main,#dmgSynthEditor,.dmg-expanded-code,.dmg-input-section,.dmg-code-panel { min-width:0; }
 .dmg-files-panel { border:1px solid var(--line); border-radius:10px; padding:12px; background:#eeece7b8; min-width:0; }
-.dmg-files-panel[hidden],.dmg-expanded-code[hidden],#synthKeyboardPanel[hidden],#synthCodePanel[hidden] { display:none; }
+.dmg-files-panel[hidden],.dmg-expanded-code[hidden],#dmgSynthEditor[hidden],#synthExpandedTabsSlot[hidden],#synthExpandedVolumeSlot[hidden],.dmg-input-heading[hidden],#synthKeyboardPanel[hidden],#synthCodePanel[hidden] { display:none; }
+#synthExpandedVolumeSlot { display:flex; justify-content:flex-end; min-width:0; margin-bottom:10px; }
+#synthExpandedVolumeSlot .master-control { max-width:100%; }
+.dmg-code-workspace .synth-expanded-heading { display:flex; align-items:flex-start; gap:8px; min-width:0; margin-bottom:12px; }
+.dmg-code-workspace .synth-expanded-heading .dmg-chip-tabs { flex:1; min-width:0; margin:0; }
+.dmg-code-workspace .synth-expanded-heading .dmg-code-expand { flex:none; padding:5px 9px; }
+.dmg-code-workspace #synthExpandedTabsSlot > .dmg-code-toolbar { margin-bottom:12px; }
 .dmg-files-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
 .dmg-files-heading h2 { margin:0; font-size:.78rem; letter-spacing:.15em; }
 .dmg-files-toolbar,.dmg-files-actions { display:flex; flex-wrap:wrap; gap:5px; }
 .dmg-files-toolbar button,.dmg-files-actions button { min-height:28px; padding:4px 7px; font-size:.7rem; }
 .dmg-files-actions { padding-top:9px; margin-top:8px; border-top:1px solid var(--line); }
+.dmg-files-save-controls { display:flex; flex-wrap:wrap; align-items:center; gap:5px; padding:8px 0 10px; margin-bottom:9px; border-bottom:1px solid var(--line); }
+.dmg-files-save-controls label { display:flex; align-items:center; gap:5px; flex-basis:100%; font-size:.73rem; }
+.dmg-files-save-controls input { margin:0; }
+.dmg-files-save-controls button { min-height:28px; padding:4px 7px; font-size:.7rem; }
+.dmg-file-unsaved { margin-left:5px; color:#875080; font-size:.85em; }
+.dmg-new-cassette-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+.dmg-files-panel button { border-radius:999px; box-shadow:none; }
+.spu-file-context-menu { z-index:1000; display:grid; gap:3px; min-width:180px; padding:7px; border:1px solid var(--line); border-radius:10px; background:#eeece7; color:var(--ink); box-shadow:0 8px 28px #26344135; }
+.spu-file-context-menu button { min-height:32px; width:100%; padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--ink); text-align:left; font-size:.78rem; font-weight:500; box-shadow:none; }
+.spu-file-context-menu button:hover:not(:disabled),.spu-file-context-menu button:focus-visible { background:#e4daec; border-color:var(--accent); }
+.spu-file-context-menu button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
 .dmg-files-status { margin:8px 0 0; font-size:.7rem; overflow-wrap:anywhere; color:var(--muted); }
 #dmgFilesTree { min-height:80px; max-height:55vh; overflow:auto; }
 #dmgFilesTree .file-tree { list-style:none; margin:0; padding:0; }
@@ -126,9 +151,8 @@ footer div { display:flex; flex-wrap:wrap; align-items:baseline; gap:5px; }
 .dmg-code-console { margin-top:8px; font-size:.73rem; }
 .dmg-code-console pre,.dmg-code-error { margin:8px 0 0; overflow:auto; max-height:160px; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; }
 .dmg-code-error { color:#ac302b; }.dmg-code-error:empty { display:none; }
-.dmg-code-workspace.is-code-expanded .dmg-main { display:none; }
-.dmg-code-workspace.is-code-expanded .dmg-expanded-code { grid-column:1/-1; }
-.dmg-code-workspace.has-files.is-code-expanded .dmg-expanded-code { grid-column:2; }
+.dmg-code-workspace.is-code-expanded .dmg-main { display:block; }
+.dmg-code-workspace.is-code-expanded .dmg-input-section { margin-top:0; padding-top:0; border-top:0; }
 .is-code-expanded .dmg-code-editor,.is-code-expanded .dmg-code-editor-host { height:65vh; }
 .dmg-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 #dmgFileNameDialog { width:min(420px,90vw); border:1px solid var(--line); border-radius:10px; background:var(--paper,#eeece7); color:inherit; padding:18px; }
@@ -137,7 +161,7 @@ footer div { display:flex; flex-wrap:wrap; align-items:baseline; gap:5px; }
 .dmg-file-context-menu[hidden] { display:none; }
 .dmg-file-context-menu button { width:100%; min-height:32px; padding:6px 12px; text-align:left; font-size:.8rem; box-shadow:none; }
 .dmg-file-context-menu button:hover:not(:disabled),.dmg-file-context-menu button:focus-visible { background:#e4daec; }
-@media(max-width:760px) { .dmg-code-workspace.has-files { grid-template-columns:minmax(0,1fr); }.dmg-code-workspace.has-files.is-code-expanded .dmg-expanded-code { grid-column:1; }#dmgFilesTree { max-height:240px; }.dmg-code-editor { font-size:12px; } }
+@media(max-width:760px) { .dmg-code-workspace.has-files { grid-template-columns:minmax(0,1fr); }#dmgFilesTree { max-height:240px; }.dmg-code-editor { font-size:12px; } }
 
 .dmg-code-live-tools { margin:0 0 16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#eeece7; }
 .dmg-code-live-tools[hidden] { display:none; }
